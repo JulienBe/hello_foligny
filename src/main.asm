@@ -28,6 +28,15 @@ WaitVBlank:
     ld bc, TilemapEnd - Tilemap
     call Memcopy
 
+	; Clean OAM
+	ld a, 0
+	ld b, 160
+	ld hl, _OAMRAM
+ClearOam:
+	ld [hli], a
+	dec b
+	jp nz, ClearOam
+
 	; Copy paddle
 	ld de, Paddle
     ld hl, $8000
@@ -40,29 +49,19 @@ WaitVBlank:
 	ld bc, BallEnd - Ball
 	call Memcopy
 
-	; Clean OAM
-	ld a, 0
-	ld b, 160
+	; Init paddle sprite in oam
 	ld hl, _OAMRAM
-ClearOam:
-	ld [hli], a
-	dec b
-	jp nz, ClearOam
-	ld hl, _OAMRAM
-
-	; Init paddle
 	ld a, 128 + 16
 	ld [hli], a
 	ld a, 16 + 8
 	ld [hli], a
 	ld a, 0
 	ld [hli], a
-	ld [hl], a	
-
-	; Init ball
+	ld [hli], a	
+	; Init ball ball sprite
 	ld a, 100 + 16
 	ld [hli], a
-	ld a, 32 + 8
+	ld a, 100 + 8
 	ld [hli], a
 	ld a, 1
 	ld [hli], a
@@ -203,28 +202,28 @@ Right:
 ; @param c: Y
 ; @return hl: tile address
 GetTileByPixel:
-	; First, we need to divide by 8 to convert a pixel position to a tile position
-	; After this we want to multiply the Y position by 32
-	; These operations efectively cancel out so we only need to mask the Y value.
+	; First, we need to divide by 8 to convert a pixel position to a tile position.
+	; After this we want to multiply the Y position by 32.
+	; These operations effectively cancel out so we only need to mask the Y value.
 	ld a, c
-	and a, %1111_1000
+	and a, %11111000
 	ld l, a
 	ld h, 0
 	; Now we have the position * 8 in hl
 	add hl, hl ; position * 16
 	add hl, hl ; position * 32
-	; convert the X position to an offset
+	; Convert the X position to an offset.
 	ld a, b
 	srl a ; a / 2
 	srl a ; a / 4
 	srl a ; a / 8
-	; add the two offsets together
+	; Add the two offsets together.
 	add a, l
 	ld l, a
 	adc a, h
 	sub a, l
 	ld h, a
-	; Add the offset to the tilemap's base address
+	; Add the offset to the tilemap's base address, and we are done!
 	ld bc, $9800
 	add hl, bc
 	ret
@@ -539,14 +538,14 @@ Paddle:
 PaddleEnd:
 
 Ball:
-    dw `00033000
-    dw `00322300
-    dw `03222230
-    dw `03222230
-    dw `00322300
-    dw `00033000
-    dw `00000000
-    dw `00000000
+    dw `00122000
+    dw `01233210
+    dw `12333321
+    dw `23333332
+    dw `23333332
+    dw `12333321
+    dw `01233210
+    dw `00122100
 BallEnd:
 
 
