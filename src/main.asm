@@ -163,6 +163,25 @@ BounceOnBottom:
     ld [wBallSpeedY], a
 BounceDone:
 
+	; Check if the ball is a proper Y to bounce on the paddle
+	ld a, [_OAMRAM]
+	ld b, a
+	ld a, [_OAMRAM + 4]
+	cp a, b
+	jp nz, PaddleBounceDone ; can only bounce at same Y
+	ld a, [_OAMRAM + 5]
+	ld b, a
+	ld a, [_OAMRAM + 1]
+	sub a, 8
+	cp a, b
+	jp nc, PaddleBounceDone
+	add a, 8 + 16
+	cp a, b
+	jp c, PaddleBounceDone
+	ld a, -1
+	ld [wBallSpeedY], a
+PaddleBounceDone:	
+
 	ld a, [wFrameCounter]
 	inc a
 	ld [wFrameCounter], a
